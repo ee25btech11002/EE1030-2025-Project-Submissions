@@ -1,0 +1,78 @@
+\let\negmedspace\undefined
+\let\negthickspace\undefined
+\documentclass[journal]{IEEEtran}
+\usepackage[a5paper, margin=10mm, onecolumn]{geometry}
+%\usepackage{lmodern} % Ensure lmodern is loaded for pdflatex
+\usepackage{tfrupee} % Include tfrupee package
+
+\setlength{\headheight}{1cm} % Set the height of the header box
+\setlength{\headsep}{0mm}     % Set the distance between the header box and the top of the text
+\usepackage{tabularx}
+\usepackage{float}
+
+\usepackage{gvv-book}
+\usepackage{gvv}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{txfonts}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{mathtools}
+\usepackage{gensymb}
+\usepackage{comment}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{tkz-euclide} 
+\usepackage{listings}
+% \usepackage{gvv}                                        
+\def\inputGnumericTable{}                                 
+\usepackage[latin1]{inputenc}                                
+\usepackage{color}                                            
+\usepackage{array}                                            
+\usepackage{longtable}                                       
+\usepackage{calc}                                             
+\usepackage{multirow}                                         
+\usepackage{hhline}                                           
+\usepackage{ifthen}                                           
+\usepackage{lscape}
+\begin{document}
+\bibliographystyle{IEEEtran}
+\title{Software Assignment - Report}
+\author{EE25BTECH11002 - Achat Parth Kalpesh }
+{\let\newpage\relax\maketitle}
+\renewcommand{\thefigure}{\theenumi}
+\renewcommand{\thetable}{\theenumi}
+\setlength{\intextsep}{10pt} % Space between text and floats
+\numberwithin{equation}{enumi}
+\numberwithin{figure}{enumi}
+\renewcommand{\thetable}{\theenumi}
+\parindent 0px
+
+
+
+\begin{table}[h!]
+\centering
+\caption{Error values for different $k$ in three sections}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Section} & \textbf{$k$} & \textbf{Error} \\
+\hline
+\multirow{3}{*}{Globe} & 10 & 15060.93  \\
+                            & 50 & 6185.64 \\
+                            & 100 & 3672.90  \\
+\hline
+\multirow{3}{*}{Einstein} & 10 & 3249.14 \\
+                            & 50 & 880.50  \\
+                            & 100 & 164.78 \\
+\hline
+\multirow{3}{*}{Greyscale} & 10 & 7176.80  \\
+                            & 50 & 1159.88 \\
+                            & 100 & 512.34\\
+\hline
+\end{tabular}
+\end{table}
+
+\end{document}
