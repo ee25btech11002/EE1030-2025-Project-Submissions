@@ -1,0 +1,424 @@
+\let\negmedspace\undefined
+\let\negthickspace\undefined
+\documentclass[journal]{IEEEtran}
+\usepackage[a5paper, margin=10mm, onecolumn]{geometry}
+%\usepackage{lmodern} % Ensure lmodern is loaded for pdflatex
+\usepackage{tfrupee} % Include tfrupee package
+
+\setlength{\headheight}{1cm} % Set the height of the header box
+\setlength{\headsep}{0mm}     % Set the distance between the header box and the top of the text
+\usepackage{tabularx}
+\usepackage{float}
+
+\usepackage{gvv-book}
+\usepackage{gvv}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{txfonts}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{mathtools}
+\usepackage{gensymb}
+\usepackage{comment}
+\usepackage[breaklinks=true]{hyperref}
+\usepackage{tkz-euclide} 
+\usepackage{listings}
+% \usepackage{gvv}                                        
+\def\inputGnumericTable{}                                 
+\usepackage[latin1]{inputenc}                                
+\usepackage{color}                                            
+\usepackage{array}                                            
+\usepackage{longtable}                                       
+\usepackage{calc}                                             
+\usepackage{multirow}                                         
+\usepackage{hhline}                                           
+\usepackage{ifthen}                                           
+\usepackage{lscape}
+\begin{document}
+\bibliographystyle{IEEEtran}
+\title{Software Assignment - Report}
+\author{EE25BTECH11002 - Achat Parth Kalpesh }
+{\let\newpage\relax\maketitle}
+\renewcommand{\thefigure}{\theenumi}
+\renewcommand{\thetable}{\theenumi}
+\setlength{\intextsep}{10pt} % Space between text and floats
+\numberwithin{equation}{enumi}
+\numberwithin{figure}{enumi}
+\renewcommand{\thetable}{\theenumi}
+\parindent 0px
+
+\textbf{Summary of Strang's video}\\
+Any real matrix A can can be expressed as the product of three matrices
+where
+\begin{align}
+    A \in \mathbb{R}^{m \times n}\\
+    A = U\Sigma V^\top
+\end{align}
+where 
+\begin{align}
+    U \in \mathbb{R}^{m \times m}\\
+    \Sigma \in \mathbb{R}^{m \times n}\\
+    V \in \mathbb{R}^{n \times n}
+\end{align}
+
+\textbf{Meaning of each matrix:}\\
+\begin{itemize}
+    \item $U$ is an orthogonal matrix whose columns are called the \textbf{left singular vectors} of $A$.\\ These vectors form an orthonormal basis for the column space of $A$.\\
+    Mathematically,
+    \begin{align}
+         U^\top U = I_{mxm}
+    \end{align}
+   
+
+    \item $V$ is an orthogonal matrix whose columns are called the \textbf{right singular vectors} of $A$. \\These vectors form an orthonormal basis for the row space of $A$.\\
+    Mathematically,
+
+      \begin{align}
+         V^\top V = I_{nxn}
+    \end{align}
+    
+    \item $\Sigma$  is a rectangular diagonal matrix containing the \textbf{singular values} $\sigma_1, \sigma_2, \dots, \sigma_r$ on its diagonal, where
+    \begin{align}
+        r = \text{rank}\brak{A}
+    \end{align}
+    
+    The singular values are always non-negative and arranged in decreasing order:
+    \begin{align}
+    \sigma_1 \geq \sigma_2 \geq \dots \geq \sigma_r > 0.
+     \end{align}
+\end{itemize}
+
+
+The SVD is closely related to the eigenvalue decomposition of $A^\top A$ and $A A^\top$
+\begin{align}
+    A^\top A v_i &= \sigma_i^2 v_i \\
+    A A^\top u_i &= \sigma_i^2 u_i
+\end{align}
+
+\begin{itemize}
+    \item The vectors $v_i$ are the eigenvectors of $A^\top A$ and form the columns of $V$.
+    \item The vectors $u_i$ are the eigenvectors of $A A^\top$ and form the columns of $U$.
+    \item The singular values $\sigma_i$ are the positive square roots of the non-zero eigenvalues of $A^\top A$ or $A A^\top$
+\end{itemize}
+
+Thus
+\begin{align}
+A v_i = \sigma_i u_i,
+\qquad
+A^\top u_i = \sigma_i v_i.
+\end{align}
+ If $A$ is square and symmetric,
+    \begin{align}
+        U = V
+    \end{align}
+    and the SVD reduces to the \textbf{eigenvalue decomposition}.\\
+     The number of non-zero singular values equals the rank of $A$\\
+
+\textbf{Explanation of the implemented algorithm (math + pseudocode)}\\[4pt]
+The algorithm implemented in \textbf{C} performs Singular Value Decomposition (SVD) to compress a grayscale image matrix $A \in \mathbb{R}^{m\times n}$.\\
+The algorithm used is \textbf{Block Power Iteration} along with \textbf{Jacobi Method}\\
+It consists of the following key stages:\\
+\begin{itemize}
+    \item reading the image
+    \item computing dominant singular triplets $(U_k, \Sigma_k, V_k)$ using an iterative method
+    \item reconstructing the compressed image $A_k = U_k \Sigma_k V_k^\top$
+\end{itemize}
+
+
+\textbf{Mathematical steps:}
+
+\begin{enumerate}
+    \item Reading the image as a matrix:
+    \begin{align}
+        A = [a_{ij}], \quad a_{ij} \in [0,255], \quad A \in \mathbb{R}^{m\times n}.
+    \end{align}
+    
+    \item Computing the transpose:
+    \begin{align}
+        A^\top \in \mathbb{R}^{n\times m}.
+    \end{align}
+    
+    \item Initializing $X_0 \in \mathbb{R}^{n\times k}$ as an identity block.\\
+    Applying \textbf{Block Power Iteration} to estimate the top-$k$ right singular vectors:
+    \begin{align}
+        Y_i &= A X_{i-1},\\
+        Z_i &= A^\top Y_i,\\
+        X_i &= \text{Orthonormalize}(Z_i).
+    \end{align}
+    Repeating until convergence or a fixed number of iterations.
+    
+    \item After convergence, columns of $X$ approximate the eigenvectors of $A^\top A$.\\
+    Hence,
+    \begin{align}
+        X \approx V_k
+    \end{align}
+    
+    \item Computing $B = A V_k$ and form the small matrix:
+    \begin{align}
+        C = B^\top B \in \mathbb{R}^{k\times k}.
+    \end{align}
+    The eigen-decomposition of $C$ yields:
+    \begin{align}
+        C = R \Lambda R^\top,
+    \end{align}
+    where $\Lambda = \text{diag}(\sigma_1^2, \dots, \sigma_k^2)$.
+    
+    \item Compute
+    \begin{align}
+        U_k = A V_k\Sigma_k^{-1}
+    \end{align}
+    where $\Sigma_k = \text{diag}(\sigma_1, \dots, \sigma_k)$.
+    
+    \item Finally, reconstruct the compressed image as:
+    \begin{align}
+        A_k = U_k \Sigma_k V_k^\top
+    \end{align}
+\end{enumerate}
+
+\textbf{Pseudocode:}
+
+Input: Image A mxn rank k, iterations T\\
+Output: Compressed image $A_k$
+
+1. Read image A , where A is a matrix with elements of type double\\
+2. Compute AT = transpose(A)\\
+3. Initialize X = identity(n, k)\\
+4. For t = 1 to T:\\
+       Y = A * X\\
+       Z = AT * Y\\
+       Orthonormalize(Z)\\
+       X = Z\\
+5. V = X\\
+6. B = A * V\\
+7. C = BT * B\\
+8. Perform Jacobi rotation on C to get eigenvalues and R\\
+9. Sigma matrix = sqrt(diag())\\
+10. U = A * V * inv(Σ)\\
+11. $A_k$ = U * $Sigma$ * $V^\top$\\
+12. Writing $A_k$ as grayscale image\\
+
+
+
+
+
+
+
+
+\subsection*{Classical SVD (Golub-Reinsch)}
+\begin{itemize}
+    \item \textbf{Description:} Computes full decomposition using Householder reduction and bidiagonalization.
+    \item \textbf{Time Complexity:} $O(mn^2)$ for $m \ge n$
+    \item \textbf{Advantages:} Exact, stable, widely used (e.g., LAPACK)
+    \item \textbf{Disadvantages:} Computationally expensive for large matrices
+    \item \textbf{Accuracy:} Very High
+\end{itemize}
+
+\subsection*{Jacobi SVD}
+\begin{itemize}
+    \item \textbf{Description:} Iteratively diagonalizes $A^T A$ using plane rotations.
+    \item \textbf{Time Complexity:} $O(n^3)$
+    \item \textbf{Advantages:} Conceptually simple, numerically stable
+    \item \textbf{Disadvantages:} Slow convergence for large matrices
+    \item \textbf{Accuracy:} Very High
+\end{itemize}
+
+\subsection*{Power Iteration (Single Vector)}
+\begin{itemize}
+    \item \textbf{Description:} Finds only the dominant singular value/vector.
+    \item \textbf{Time Complexity:} $O(mn \cdot t)$
+    \item \textbf{Advantages:} Easy to implement, memory efficient
+    \item \textbf{Disadvantages:} Only finds top singular value
+    \item \textbf{Accuracy:} Moderate
+\end{itemize}
+
+\subsection*{Block Power Iteration (Subspace Iteration)}
+\begin{itemize}
+    \item \textbf{Description:} Finds top $k$ singular vectors simultaneously using subspace iteration.
+    \item \textbf{Time Complexity:} $O(kmn \cdot t)$
+    \item \textbf{Advantages:} Faster convergence, parallelizable, works for multiple singular values
+    \item \textbf{Disadvantages:} Requires orthonormalization (extra cost)
+    \item \textbf{Accuracy:} High
+\end{itemize}
+
+\subsection*{Randomized SVD}
+\begin{itemize}
+    \item \textbf{Description:} Uses random projections to approximate the dominant subspace.
+    \item \textbf{Time Complexity:} $O(mn \log k + k^2(m+n))$
+    \item \textbf{Advantages:} Extremely fast for large-scale data
+    \item \textbf{Disadvantages:} Accuracy depends on random sampling
+    \item \textbf{Accuracy:} Very High
+\end{itemize}
+
+
+\textbf{Algorithm choice:}\\
+The \textbf{Power Block Iteration} method was selected because it efficiently computes
+the dominant singular vectors without requiring a full SVD decomposition.
+This is particularly advantageous for large images where direct decomposition
+is computationally expensive. The Jacobi method was used to diagonalize the
+small $k\times k$ matrix, ensuring numerical stability and simplicity in implementation.
+
+\textbf{Key implementation details:}
+\begin{itemize}
+    \item \texttt{stb\_image.h} and \texttt{stb\_image\_write.h} were used for reading/writing images.
+    \item Memory was dynamically allocated using \texttt{malloc}/\texttt{calloc} and freed after use.
+    \item Matrix operations (\texttt{transpose}, \texttt{multiply}, \texttt{orthonormalize}) were implemented from scratch.
+    \item The code ensures numerical safety by checking division thresholds (e.g., $\sigma_i > 10^{-12}$).
+\end{itemize}
+
+\subsection*{Error Analysis: Block Power Iteration + Jacobi}
+
+The total error in the computed singular values and vectors comes from two main sources:
+
+\begin{itemize}
+    \item \textbf{Block Power Iteration Error:} 
+    The block power iteration approximates the top-$k$ singular subspace. The convergence depends on the ratio of singular values:
+    \[
+        \frac{\sigma_{k+1}}{\sigma_k}
+    \]
+    The smaller this ratio, the faster the convergence. The error in the computed subspace after $t$ iterations can be bounded as:
+    \[
+        \| \sin \Theta(X, U_k) \| = O\left( \left(\frac{\sigma_{k+1}}{\sigma_k}\right)^t \right),
+    \]
+    where $X$ is the computed subspace and $U_k$ is the exact top-$k$ singular vectors.
+
+    \item \textbf{Jacobi Diagonalization Error:} 
+    Once the smaller matrix $B = X^T A$ is formed, the Jacobi method is applied to compute its SVD. Jacobi is known to be numerically stable, and the relative error in singular values is bounded by machine precision:
+    \[
+        \frac{\| \tilde{\Sigma} - \Sigma \|_F}{\| \Sigma \|_F} \approx O(\epsilon_\text{machine}).
+    \]
+
+    \item \textbf{Combined Error:} 
+    The final error in the reconstructed matrix $A_k = X \tilde{\Sigma} Y^T$ is a combination of the subspace approximation error from the block power iteration and the numerical error from Jacobi:
+    \begin{align}
+        \norm{ A - A_k}_F \le \norm{A - A_k}^\text{opt}_F + O\brak{ \brak{\frac{\sigma_{k+1}}{\sigma_k}}^t \norm{A}_F } + O(\epsilon_\text{machine}).
+    \end{align}
+        
+    Here, $A_k^\text{opt}$ is the best rank-$k$ approximation from exact SVD.
+\end{itemize}
+
+\noindent
+\textbf{Conclusion:} The method achieves high accuracy for the dominant singular values, and errors decrease exponentially with the number of iterations. Jacobi ensures numerical stability in the final step, making the combination reliable for practical computations.
+
+\begin{table}[h!]
+\centering
+\caption{Error values for different $k$ in three sections}
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Section} & \textbf{$k$} & \textbf{Error} \\
+\hline
+\multirow{3}{*}{Globe} & 10 & 15060.93  \\
+                            & 50 & 6185.64 \\
+                            & 100 & 3672.90  \\
+\hline
+\multirow{3}{*}{Einstein} & 10 & 3249.14 \\
+                            & 50 & 880.50  \\
+                            & 100 & 164.78 \\
+\hline
+\multirow{3}{*}{Greyscale} & 10 & 7176.80  \\
+                            & 50 & 1159.88 \\
+                            & 100 & 512.34\\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{figs/original/globe.jpg}
+    \caption{Globe}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{figs/Generated/globe10.png}
+    \caption{Globe at k = 10}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{figs/Generated/globe50.png}
+    \caption{Globe at k = 50}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{figs/Generated/globe100.png}
+    \caption{Globe at k = 100}
+    \label{fig:fig}
+ \end{figure}
+
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{figs/original/einstein.jpg}
+    \caption{Einstein}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+\includegraphics[width=0.5\columnwidth]{figs/Generated/einstein10.jpg}
+    \caption{Einstein at k = 10}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+\includegraphics[width=0.5\columnwidth]{figs/Generated/einstein50.jpg}
+    \caption{Einstein at k = 50}
+    \label{fig:fig}
+ \end{figure}
+
+\begin{figure}[h!]
+    \centering
+\includegraphics[width=0.5\columnwidth]{figs/Generated/einstein100.jpg}
+    \caption{Einstein at k = 100}
+    \label{fig:fig}
+ \end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\columnwidth]{figs/original/greyscale.png}
+    \caption{greyscale}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+\includegraphics[width=0.5\columnwidth]{figs/Generated/greyscale10.png}
+    \caption{greyscale at k = 10}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+\includegraphics[width=0.5\columnwidth]{figs/Generated/greyscale50.png}
+    \caption{greyscale at k = 50}
+    \label{fig:fig}
+ \end{figure}
+
+
+\begin{figure}[h!]
+    \centering
+\includegraphics[width=0.5\columnwidth]{figs/Generated/greyscale100.png}
+    \caption{greyscale at k = 100}
+    \label{fig:fig}
+ \end{figure}
+    
+\end{document}
